@@ -1,0 +1,31 @@
+<html>
+  <style>
+    body{
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+
+
+<body>
+  <h1>Recipe Home</h1>
+  <div>{{data}}</div>
+
+  <div>
+    {% for n in data %}
+    <div>{{n}}</div>
+    {% endfor %}
+  </div>
+
+<p><a href="/another">Go to the other page</a></p>
+
+<form method="POST" action="/addrecipe">
+<p>Add recipe name: <input type="text" name="recipename"> <input type="submit" value="Add"></p>
+    <p>Add ingredients (split by comma): <input type="text" name="ingredients"> <input type="submit" value="Add"></p>
+    <p>Add Instructions: <input type="text" name="instructions"> <input type="submit" value="Add"></p>
+</form>
+
+</body>
+
+
+</html>

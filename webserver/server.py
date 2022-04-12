@@ -172,15 +172,31 @@ def index():
 def another():
   return render_template("anotherfile.html")
 
+@app.route('/home')
+def recipe_home():
+  return render_template("recipe_home.html")
+
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
 def add():
   name = request.form['name']
+  instructions = request.form['instructions']
+  ingredients = request.form['ingredients']
   print (name)
   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
   g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/')
+  return redirect('/home')
+
+@app.route('/addrecipe', methods=['POST'])
+def recipe_add():
+  recipe_name = request.form['recipename']
+  instructions = request.form['instructions']
+  ingredients = request.form['ingredients']
+  print (recipe_name, instructions, ingredients)
+  #cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
+  #g.conn.execute(text(cmd), name1 = name, name2 = name);
+  return redirect('/home')
 
 
 @app.route('/login')
