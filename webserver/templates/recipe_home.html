@@ -60,8 +60,43 @@
 <form method="POST" action="/addrecipe">
 <p>Add recipe name: <input type="text" name="recipename"> <input type="submit" value="Add"></p>
     <p>Add ingredients (split by comma): <input type="text" name="ingredients"> <input type="submit" value="Add"></p>
+   <ul id="fieldList">
+    <li>
+      <input name="name[]" type="text" placeholder="Name" />
+    </li>
+    <li>
+      <input name="phone[]" type="text" placeholder="Phone" />
+    </li>
+    <li>
+      <input name="email[]" type="text" placeholder="E-Mail">
+    </li>
+  </ul>
   <p>Quantity: <input type="text" name="ingredients_quantity"> <input type="submit" value="Add"></p>
     <p>Add Instructions: <input type="text" name="instructions"> <input type="submit" value="Add"></p>
+</form>
+
+  <form action="form_sent.php" method="post">
+  <ul id="fieldList">
+    <li>
+      <input name="name[]" type="text" placeholder="Name" />
+    </li>
+    <li>
+      <input name="phone[]" type="text" placeholder="Phone" />
+    </li>
+    <li>
+      <input name="email[]" type="text" placeholder="E-Mail">
+    </li>
+  </ul>
+  <button id="addMore">Add more fields</button>
+  <br>
+  <br>
+  <input type="submit">
+</form>
+
+  <form action="/action_page.php">
+  <input type="file" id="myFile" name="filename">
+  <input type="submit">
+</form>
 
 
 </form>

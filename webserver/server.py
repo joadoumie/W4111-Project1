@@ -15,9 +15,23 @@ Read about it online.
 """
 
 import os
+import json
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
+
+
+#JSON RECIPEUID STUFF
+with open('ids.json') as f:
+  ids_data = json.load(f)
+
+print(ids_data)
+print(ids_data["recipeuid"])
+recipe_uid = ids_data["recipeuid"]
+#ids_data["recipeuid"] += 1
+print(ids_data["recipeuid"])
+with open('ids.json', 'w') as json_file:
+  json.dump(ids_data, json_file)
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -185,12 +199,9 @@ def navbar():
 @app.route('/add', methods=['POST'])
 def add():
   name = request.form['name']
-  instructions = request.form['instructions']
-  ingredients = request.form['ingredients']
-  print (name)
   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
   g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/home')
+  return redirect('/')
 
 @app.route('/addrecipe', methods=['POST'])
 def recipe_add():
@@ -198,8 +209,8 @@ def recipe_add():
   instructions = request.form['instructions']
   ingredients = request.form['ingredients']
   print (recipe_name, instructions, ingredients)
-  #cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  #g.conn.execute(text(cmd), name1 = name, name2 = name);
+  cmd = 'INSERT INTO recipes VALUES (:name1, :name2, :name3)';
+  g.conn.execute(text(cmd), name1 = recipe_uid, name2 = recipe_name, name3 = instructions);
   return redirect('/home')
 
 
