@@ -176,6 +176,10 @@ def another():
 def recipe_home():
   return render_template("recipe_home.html")
 
+@app.route('/testnav')
+def navbar():
+  return render_template("testnavbar.html")
+
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
