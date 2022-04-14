@@ -1,4 +1,44 @@
 <html>
+<style type="text/css">
+<!--
+
+ #navbar ul {
+	margin: 0;
+	padding: 5px;
+	list-style-type: none;
+	text-align: center;
+	background-color: #000;
+	}
+
+#navbar ul li {
+	display: inline;
+	}
+
+#navbar ul li a {
+	text-decoration: none;
+	padding: .2em 1em;
+	color: #fff;
+	background-color: #000;
+	}
+
+#navbar ul li a:hover {
+	color: #000;
+	background-color: #fff;
+	}
+
+-->
+</style>
+</head>
+<body>
+<div id="navbar">
+  <ul>
+	<li><a href="http://github.com">Link 1</a></li>
+	<li><a href="http://github.com">Link 2</a></li>
+	<li><a href="http://github.com">Link 3</a></li>
+	<li><a href="http://github.com">Link 4</a></li>
+	<li><a href="http://github.com">Link 5</a></li>
+  </ul>
+</div>
   <style>
     body{
       font-size: 15pt;
@@ -6,16 +46,23 @@
     }
   </style>
 
+  <h1>Write a review here</h1>
 
-<body>
-  <h1>Some famous Computer Scientists</h1>
-  <div>{{data}}</div>
-
-<p><a href="/another">Go to the other page</a></p>
-  <p><a href="/home">Home</a></p>
+  <p><a href="/testnav">Go to the nav page</a></p>
 
 <form method="POST" action="/addreview">
-<p>Name of new computer scientist: <textarea name="Text1" cols="40" rows="5"></textarea> <input type="submit" value="Add"></p>
+  <p> Input recipeID:
+    <input name="recipeid" type="number" placeholder="recipeID"/>
+  </p>
+  <p> Input number of stars:
+    <input name="stars" type="number" placeholder="stars"/>
+  </p>
+  <p> Input review:
+    <textarea name="reviewtext" cols="40" rows="5" placeholder="write review here"></textarea>
+  </p>
+  <p> Input your userid:
+    <input name="uid" type="text" placeholder="user id"/><input type="submit" value="Add">
+  </p>
 </form>
 
 </body>
