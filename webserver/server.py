@@ -18,25 +18,44 @@ import os
 import json
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, request, render_template, g, redirect, Response, session, flash
 
 
 #JSON RECIPEUID STUFF
 with open('ids.json') as f:
   ids_data = json.load(f)
 
-print(ids_data)
-print(ids_data["recipeuid"])
 recipe_uid = ids_data["recipeuid"]
-#ids_data["recipeuid"] += 1
+ingredient_uid = ids_data["ingredientid"]
+review_id = ids_data["reviewid"]
 print(ids_data["recipeuid"])
 with open('ids.json', 'w') as json_file:
   json.dump(ids_data, json_file)
 
+
+def increment_recipeID():
+  global recipe_uid, ids_data
+  recipe_uid += 1
+  ids_data["recipeuid"] += 1
+  with open('ids.json', 'w') as json_file:
+    json.dump(ids_data, json_file)
+
+def increment_ingredientID():
+  global ingredient_uid, ids_data
+  ingredient_uid += 1
+  ids_data["ingredientid"] += 1
+  with open('ids.json', 'w') as json_file:
+    json.dump(ids_data, json_file)
+
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
-
+def insert_into_table(table_name, list_of_vals):
+  values = "("
+  for val in list_of_vals:
+    values += str(val)
+  values += ")"
+  return "INSERT INTO " + table_name + "VALUES " + values
 
 # XXX: The Database URI should be in the format of: 
 #
@@ -116,72 +135,96 @@ def teardown_request(exception):
 #
 @app.route('/')
 def index():
-  """
-  request is a special object that Flask provides to access web request information:
+  if not session.get('logged_in'):
+    return render_template('login.html')
+  return render_template("recipe_home.html")
 
+@app.route('/allrecipes')
+def all_recipes():
+    """
+  request is a special object that Flask provides to access web request information:
   request.method:   "GET" or "POST"
   request.form:     if the browser submitted a form, this contains the data in the form
   request.args:     dictionary of URL arguments e.g., {a:1, b:2} for http://localhost?a=1&b=2
-
   See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
   """
 
-  # DEBUG: this is debugging code to see what request looks like
-  print (request.args)
+    # DEBUG: this is debugging code to see what request looks like
+    print(request.args)
+
+    #
+    # example of a database query
+    #
+    cursor1 = g.conn.execute("SELECT * FROM recipes")
+    recipeIDList = []
+    recipeNamesDict = {}
+    recipeInstDict = {}
+    for result in cursor1:
+        recipeIDList.append(result['recipeid'])  # can also be accessed using result[0]
+        currRecipeID = result['recipeid']
+        recipeNamesDict[currRecipeID]= str(result['recipename']).strip()
+        recipeInstDict[currRecipeID]= str(result['instructions']).strip()
+    cursor1.close()
+
+    recipeIngredDict = {}
+    for curr_recipeID in recipeIDList:
+        temp_sql = """
+        select *
+        from recipes natural join contains_ingredients natural join ingredients
+        where recipeID = %d
+        """ % (curr_recipeID)
+        tempCursor = g.conn.execute(temp_sql)
+        currRecipeIngred = []
+        for result in tempCursor:
+            tempAmt = str(result['amount']).strip()
+            tempUnit = str(result['unit']).strip()
+            tempName = str(result['name']).strip()
+            tempStr = tempAmt + ' ' + tempUnit + ' ' + tempName
+            currRecipeIngred.append(tempStr)
+        recipeIngredDict[curr_recipeID] = currRecipeIngred
+        tempCursor.close()
+
+    recipeRatingDict = {}
+    for curr_recipeID in recipeIDList:
+        temp_sql = """
+        select *
+        from review natural join users
+        where recipeID = %d
+        """ % (curr_recipeID)
+        tempCursor1 = g.conn.execute(temp_sql)
+        currReviewList = []
+        for result in tempCursor1:
+            tempReview = {'reviewid': result['reviewid'],
+                          'stars': result['stars'],
+                          'content': str(result['content']).strip(),
+                          'username': result['username']}
+            # tempReview = [result['reviewid'], result['stars'], str(result['content']).strip()]
+            currReviewList.append(tempReview)
+        recipeRatingDict[curr_recipeID] = currReviewList
+        tempCursor1.close()
+
+    print(recipeRatingDict[2][1])
+
+    context1 = dict(recipeIDList=recipeIDList, recipeNamesDict=recipeNamesDict,
+                    recipeInstDict=recipeInstDict, recipeIngredDict=recipeIngredDict,
+                    recipeRatingDict=recipeRatingDict)
+    #
+    # render_template looks in the templates/ folder for files.
+    # for example, the below file reads template/index.html
+    #
+    return render_template("allrecipes.html", **context1)
 
 
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute("SELECT name FROM test")
-  names = []
-  for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
-  cursor.close()
-
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
-  context = dict(data = names)
+@app.route('/reviews')
+def review_recipes():
+    return render_template("reviewrecipe.html")
 
 
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
+@app.route('/logout')
+def logout():
+  session['logged_in'] = False
+  return index()
 
-#
-# This is an example of a different path.  You can see it at
-# 
-#     localhost:8111/another
-#
-# notice that the functio name is another() rather than index()
-# the functions for each app.route needs to have different names
-#
 @app.route('/another')
 def another():
   return render_template("anotherfile.html")
@@ -190,34 +233,84 @@ def another():
 def recipe_home():
   return render_template("recipe_home.html")
 
+@app.route('/addingredienterror')
+def add_ingr_err():
+  return render_template("addingingredienterror.html")
+
 @app.route('/testnav')
 def navbar():
   return render_template("testnavbar.html")
 
-
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/')
+@app.route('/addreview', methods=['POST'])
+def review_add():
+    recipeid = request.form['recipeid']
+    stars = request.form['stars']
+    content = request.form['reviewtext']
+    uid = request.form['uid']
+    # print(recipe_name, instructions, ingredients)
+    cmd = 'INSERT INTO review VALUES (:name1, :name2, :name3, :name4, :name5)';
+    g.conn.execute(text(cmd), name1=review_id, name2=content,
+                   name3=stars, name4=recipeid, name5=uid);
+    return redirect('/home')
 
 @app.route('/addrecipe', methods=['POST'])
 def recipe_add():
   recipe_name = request.form['recipename']
   instructions = request.form['instructions']
-  ingredients = request.form['ingredients']
-  print (recipe_name, instructions, ingredients)
+  print (recipe_name, instructions)
   cmd = 'INSERT INTO recipes VALUES (:name1, :name2, :name3)';
   g.conn.execute(text(cmd), name1 = recipe_uid, name2 = recipe_name, name3 = instructions);
+  increment_recipeID()
   return redirect('/home')
 
 
+@app.route('/addingredient', methods=['POST'])
+def ingredient_add():
+  ingredient_name = request.form['ingredient_name']
+  ingredient_qty = request.form['quantity']
+  ingredient_unit = request.form['unit']
+  print (ingredient_name, ingredient_qty)
+  recipe_exists = g.conn.execute('SELECT * FROM recipes WHERE recipeID = ' + str(recipe_uid)).scalar()
+  if not recipe_exists:
+    return redirect('/addingredienterror')
+  ingredient_exists = g.conn.execute('SELECT * FROM ingredients WHERE name = ' + " ' + " + ingredient_name + "'").scalar()
+  if not ingredient_exists:
+    #Add ingredient to ingredients table.
+    local_ingr_id = ingredient_uid
+    cmd = 'INSERT INTO ingredients VALUES (:name1, :name2)';
+    g.conn.execute(text(cmd), name1=local_ingr_id, name2=ingredient_name);
+  else:
+    local_ingr_id = ingredient_exists['ingredientID']
+
+  cmd = 'INSERT INTO contains_ingredients VALUES (:name1, :name2, :name3, :name4)';
+  g.conn.execute(text(cmd), name1=local_ingr_id, name2=recipe_uid, name3=ingredient_qty, name4=ingredient_unit);
+  increment_ingredientID()
+  return redirect('/home')
+
+
+@app.route('/existing_login')
+def existing_login():
+  return render_template('existinglogin.html')
+
+@app.route('/create_new_login')
+def create_new_login():
+  return render_template('createnewaccount.html')
+
 @app.route('/login')
 def login():
-    abort(401)
-    this_is_never_executed()
+    return render_template('login.html')
+
+
+@app.route('/login_attempt', methods =['POST'])
+def do_login():
+  print("Testing testing")
+  if request.form['password'] == 'password' and request.form['username'] == 'admin':
+    session['logged_in'] = True
+    return index()
+  else:
+    print("flash that password")
+    flash('wrong password!')
+  return index()
 
 
 if __name__ == "__main__":
@@ -243,6 +336,7 @@ if __name__ == "__main__":
 
     HOST, PORT = host, port
     print ("running on %s:%d" % (HOST, PORT))
+    app.secret_key = os.urandom(12)
     app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
 

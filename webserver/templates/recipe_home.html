@@ -58,39 +58,32 @@
   <p><a href="/testnav">Go to the nav page</a></p>
 
 <form method="POST" action="/addrecipe">
-<p>Add recipe name: <input type="text" name="recipename"> <input type="submit" value="Add"></p>
-    <p>Add ingredients (split by comma): <input type="text" name="ingredients"> <input type="submit" value="Add"></p>
-   <ul id="fieldList">
-    <li>
-      <input name="name[]" type="text" placeholder="Name" />
-    </li>
-    <li>
-      <input name="phone[]" type="text" placeholder="Phone" />
-    </li>
-    <li>
-      <input name="email[]" type="text" placeholder="E-Mail">
-    </li>
-  </ul>
-  <p>Quantity: <input type="text" name="ingredients_quantity"> <input type="submit" value="Add"></p>
-    <p>Add Instructions: <input type="text" name="instructions"> <input type="submit" value="Add"></p>
+<p>Add recipe name: <input type="text" name="recipename"> </p>
+    <p>Add Instructions: <input type="text" name="instructions"></p>
+    <p><input type="submit" value="Add"></p>
 </form>
 
-  <form action="form_sent.php" method="post">
-  <ul id="fieldList">
+<form method="POST" action="/addingredient">
+    <p>Add ingredients (split by comma):
+   <ul id="fieldList">
     <li>
-      <input name="name[]" type="text" placeholder="Name" />
+      <input name="ingredient_name" type="text" placeholder="Name" />
     </li>
     <li>
-      <input name="phone[]" type="text" placeholder="Phone" />
+      <input name="quantity" type="number" placeholder="Quantity" />
     </li>
-    <li>
-      <input name="email[]" type="text" placeholder="E-Mail">
+  <li>
+      <select name="unit"  placeholder="Unit" >
+        <option value="None"> </option>
+        <option value="Tablespoon"> Tablespoon</option>
+        <option value="Teaspoon"> Teaspoon</option>
+        <option value="Cups"> Cups</option>
+        <option value="Whole"> Whole</option>
+      </select>
     </li>
   </ul>
-  <button id="addMore">Add more fields</button>
-  <br>
-  <br>
-  <input type="submit">
+  <p> <input type="submit" value="Add"></p>
+  </p>
 </form>
 
   <form action="/action_page.php">
