@@ -7,7 +7,7 @@
   </style>
 
 
-<body> all recipes that X favorited</h1>
+<body> all recipes that you favorited</h1>
 
   <table>
     {% for currRecipeID in recipeIDList%}
@@ -17,20 +17,25 @@
     {% endfor %}
     <tr><td>{{recipeInstDict[currRecipeID]}}</td></tr>
     <tr><td></td></tr>
-    {% for currReview in recipeRatingDict[currRecipeID] %}
-    <tr><td>ReviewID #{{currReview['reviewid']}} by {{currReview['username']}}</td></tr>
-    <tr><td>Rating: {{currReview['stars']}}/10</td></tr>
-    <tr><td>Review: {{currReview['content']}}</td></tr>
+<!--    {% for currReview in recipeRatingDict[currRecipeID] %}-->
+<!--    <tr><td>ReviewID #{{currReview['reviewid']}} by {{currReview['username']}}</td></tr>-->
+<!--    <tr><td>Rating: {{currReview['stars']}}/10</td></tr>-->
+<!--    <tr><td>Review: {{currReview['content']}}</td></tr>-->
+<!--    <tr><td></td></tr>-->
+<!--    {% endfor %}-->
     <tr><td></td></tr>
-    {% endfor %}
     <tr><td></td></tr>
     <tr><td></td></tr>
-    <tr><td></td></tr>
-
     {% endfor %}
   </table>
-
-
+<form method="POST" action="/addfavorite">
+    <p> Input your userid:
+    <input name="uid" type="text" placeholder="user id"/>
+  </p>
+    <p> What recipe would you like to favorite?:
+    <input name="recipeid" type="text" placeholder="recipeid"/><input type="submit" value="Add">
+  </p>
+</form>
 </body>
 
 

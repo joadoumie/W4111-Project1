@@ -222,7 +222,7 @@ def fave_recipes():
     #
     # example of a database query
     #
-    temp_fave = """
+    tempfave = """
     select *
     from recipes natural join favorites
     where uid = %d 
@@ -285,7 +285,6 @@ def fave_recipes():
 def review_recipes():
     return render_template("reviewrecipe.html")
 
-
 @app.route('/logout')
 def logout():
   session['logged_in'] = False
@@ -306,6 +305,22 @@ def add_ingr_err():
 @app.route('/testnav')
 def navbar():
   return render_template("testnavbar.html")
+
+@app.route('/addfavorite', methods=['POST'])
+def follow_add():
+    recipeid = request.form['recipeid']
+    uid = request.form['uid']
+    cmd = 'INSERT INTO favorites VALUES (:name1, :name2)';
+    g.conn.execute(text(cmd), name1=recipeid, name2=uid);
+    return redirect('/home')
+
+@app.route('/addfavorite', methods=['POST'])
+def favorite_add():
+    recipeid = request.form['recipeid']
+    uid = request.form['uid']
+    cmd = 'INSERT INTO favorites VALUES (:name1, :name2)';
+    g.conn.execute(text(cmd), name1=recipeid, name2=uid);
+    return redirect('/home')
 
 @app.route('/addreview', methods=['POST'])
 def review_add():
