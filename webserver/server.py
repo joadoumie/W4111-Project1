@@ -128,29 +128,58 @@ def index():
     # example of a database query
     #
     cursor1 = g.conn.execute("SELECT * FROM recipes")
-    recipeIDs = []
-    recipeNames = []
-    recipeIns = []
+    recipeIDList = []
+    recipeNamesDict = {}
+    recipeInstDict = {}
     for result in cursor1:
-        recipeIDs.append(result['recipeid'])  # can also be accessed using result[0]
-        recipeNames.append(result['recipename'])
-        recipeIns.append(result['instructions'])
+        recipeIDList.append(result['recipeid'])  # can also be accessed using result[0]
+        currRecipeID = result['recipeid']
+        recipeNamesDict[currRecipeID]= str(result['recipename']).strip()
+        recipeInstDict[currRecipeID]= str(result['instructions']).strip()
     cursor1.close()
 
-    for curr_recipe in recipeNames:
+    recipeIngredDict = {}
+    for curr_recipeID in recipeIDList:
         temp_sql = """
-        select name
+        select *
         from recipes natural join contains_ingredients natural join ingredients
-        where recipename = %s
-        """ % (curr_recipe)
+        where recipeID = %d
+        """ % (curr_recipeID)
         tempCursor = g.conn.execute(temp_sql)
+        currRecipeIngred = []
+        for result in tempCursor:
+            tempAmt = str(result['amount']).strip()
+            tempUnit = str(result['unit']).strip()
+            tempName = str(result['name']).strip()
+            tempStr = tempAmt + ' ' + tempUnit + ' ' + tempName
+            currRecipeIngred.append(tempStr)
+        recipeIngredDict[curr_recipeID] = currRecipeIngred
+        tempCursor.close()
 
+    recipeRatingDict = {}
+    for curr_recipeID in recipeIDList:
+        temp_sql = """
+        select *
+        from review natural join users
+        where recipeID = %d
+        """ % (curr_recipeID)
+        tempCursor1 = g.conn.execute(temp_sql)
+        currReviewList = []
+        for result in tempCursor1:
+            tempReview = {'reviewid': result['reviewid'],
+                          'stars': result['stars'],
+                          'content': str(result['content']).strip(),
+                          'username': result['username']}
+            # tempReview = [result['reviewid'], result['stars'], str(result['content']).strip()]
+            currReviewList.append(tempReview)
+        recipeRatingDict[curr_recipeID] = currReviewList
+        tempCursor1.close()
 
-    print(sql1)
-    #cursor2 = g.conn.execute()
+    print(recipeRatingDict[2][1])
 
-    context1 = dict(data1=recipeIDs, data2=recipeNames, data3=recipeIns)
-
+    context1 = dict(recipeIDList=recipeIDList, recipeNamesDict=recipeNamesDict,
+                    recipeInstDict=recipeInstDict, recipeIngredDict=recipeIngredDict,
+                    recipeRatingDict=recipeRatingDict)
     #
     # render_template looks in the templates/ folder for files.
     # for example, the below file reads template/index.html
