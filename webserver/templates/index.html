@@ -8,28 +8,14 @@
 
 
 <body>
-  <h1>All recipes in database</h1>
+  <h1>Some famous Computer Scientists</h1>
+  <div>{{data}}</div>
 
-  <table>
-    {% for currRecipeID in recipeIDList%}
-    <tr><th style="text-align:left">RecipeID #{{currRecipeID}}: {{recipeNamesDict[currRecipeID]}}</th></tr>
-    {% for currIngred in recipeIngredDict[currRecipeID]%}
-    <tr><td>{{currIngred}}</td></tr>
+  <div>
+    {% for n in data %}
+    <div>{{n}}</div>
     {% endfor %}
-    <tr><td>{{recipeInstDict[currRecipeID]}}</td></tr>
-    <tr><td></td></tr>
-    {% for currReview in recipeRatingDict[currRecipeID] %}
-    <tr><td>ReviewID #{{currReview['reviewid']}} by {{currReview['username']}}</td></tr>
-    <tr><td>Rating: {{currReview['stars']}}/10</td></tr>
-    <tr><td>Review: {{currReview['content']}}</td></tr>
-    <tr><td></td></tr>
-    {% endfor %}
-    <tr><td></td></tr>
-    <tr><td></td></tr>
-    <tr><td></td></tr>
-
-    {% endfor %}
-  </table>
+  </div>
 
 <p><a href="/another">Go to the other page</a></p>
   <p><a href="/home">Home</a></p>
