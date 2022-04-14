@@ -23,11 +23,13 @@ from flask import Flask, request, render_template, g, redirect, Response
 with open('ids.json') as f:
     ids_data = json.load(f)
 
-print(ids_data)
-print(ids_data["recipeuid"])
+
+# print(ids_data)
+# print(ids_data["recipeuid"])
 recipe_uid = ids_data["recipeuid"]
+review_id = ids_data["reviewid"]
 # ids_data["recipeuid"] += 1
-print(ids_data["recipeuid"])
+# print(ids_data["recipeuid"])
 with open('ids.json', 'w') as json_file:
     json.dump(ids_data, json_file)
 
@@ -229,6 +231,17 @@ def recipe_add():
     g.conn.execute(text(cmd), name1=recipe_uid, name2=recipe_name, name3=instructions);
     return redirect('/home')
 
+@app.route('/addreview', methods=['POST'])
+def review_add():
+    recipeid = request.form['recipeid']
+    stars = request.form['stars']
+    content = request.form['reviewtext']
+    uid = request.form['uid']
+    # print(recipe_name, instructions, ingredients)
+    cmd = 'INSERT INTO review VALUES (:name1, :name2, :name3, :name4, :name5)';
+    g.conn.execute(text(cmd), name1=review_id, name2=content,
+                   name3=stars, name4=recipeid, name5=uid);
+    return redirect('/home')
 
 @app.route('/login')
 def login():
