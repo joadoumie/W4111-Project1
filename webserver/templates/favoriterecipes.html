@@ -1,0 +1,32 @@
+<html>
+  <style>
+    body{
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+
+
+<body> all recipes that you favorited</h1>
+
+  <table>
+    {% for currRecipeID in recipeIDList%}
+    <tr><th style="text-align:left">RecipeID #{{currRecipeID}}: {{recipeNamesDict[currRecipeID]}}</th></tr>
+    {% for currIngred in recipeIngredDict[currRecipeID]%}
+    <tr><td>{{currIngred}}</td></tr>
+    {% endfor %}
+    <tr><td>{{recipeInstDict[currRecipeID]}}</td></tr>
+    <tr><td></td></tr>
+    <tr><td></td></tr>
+    <tr><td></td></tr>
+    {% endfor %}
+  </table>
+<form method="POST" action="/addfavorite">
+    <p> What recipe would you like to favorite?:
+    <input name="recipeid" type="text" placeholder="recipeid"/><input type="submit" value="Add">
+  </p>
+</form>
+</body>
+
+
+</html>

@@ -47,15 +47,15 @@
   </style>
 
   <h1>Recipe Home</h1>
-  <div>{{data}}</div>
-
-  <div>
-    {% for n in data %}
-    <div>{{n}}</div>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
     {% endfor %}
-  </div>
-
-  <p><a href="/testnav">Go to the nav page</a></p>
+    </ul>
+  {% endif %}
+{% endwith %}
 
 <form method="POST" action="/addrecipe">
 <p>Add recipe name: <input type="text" name="recipename"> </p>
