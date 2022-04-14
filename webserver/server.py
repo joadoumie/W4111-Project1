@@ -256,28 +256,8 @@ def fave_recipes():
         recipeIngredDict[curr_recipeID] = currRecipeIngred
         tempCursor.close()
 
-    recipeRatingDict = {}
-    for curr_recipeID in recipeIDList:
-        temp_sql = """
-        select *
-        from review natural join users
-        where recipeID = %d
-        """ % (curr_recipeID)
-        tempCursor1 = g.conn.execute(temp_sql)
-        currReviewList = []
-        for result in tempCursor1:
-            tempReview = {'reviewid': result['reviewid'],
-                          'stars': result['stars'],
-                          'content': str(result['content']).strip(),
-                          'username': result['username']}
-            # tempReview = [result['reviewid'], result['stars'], str(result['content']).strip()]
-            currReviewList.append(tempReview)
-        recipeRatingDict[curr_recipeID] = currReviewList
-        tempCursor1.close()
-
     context2 = dict(recipeIDList=recipeIDList, recipeNamesDict=recipeNamesDict,
-                    recipeInstDict=recipeInstDict, recipeIngredDict=recipeIngredDict,
-                    recipeRatingDict=recipeRatingDict)
+                    recipeInstDict=recipeInstDict, recipeIngredDict=recipeIngredDict)
 
     return render_template("favoriterecipes.html", **context2)
 
