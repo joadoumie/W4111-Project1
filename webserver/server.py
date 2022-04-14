@@ -223,8 +223,6 @@ def all_recipes():
         recipeRatingDict[curr_recipeID] = currReviewList
         tempCursor1.close()
 
-    print(recipeRatingDict[2][1])
-
     context1 = dict(recipeIDList=recipeIDList, recipeNamesDict=recipeNamesDict,
                     recipeInstDict=recipeInstDict, recipeIngredDict=recipeIngredDict,
                     recipeRatingDict=recipeRatingDict)
@@ -311,6 +309,34 @@ def fave_recipes():
                     recipeInstDict=recipeInstDict, recipeIngredDict=recipeIngredDict)
 
     return render_template("favoriterecipes.html", **context2)
+
+@app.route('/follows')
+def follow():
+
+    tempsql1 = """
+    select * from follows as f join users as u
+    on f.leader = u.uid
+    where f.follower = (:name8)
+    """
+    cursor3 = g.conn.execute(text(tempsql1), name8=session["uid"])
+
+    leaderDict = {}
+    for result1 in cursor3:
+        leaderDict[result1['leader']] = str(result1['username']).strip()
+
+    context4 = dict(leaderDict = leaderDict)
+
+    return render_template("follows.html", **context4)
+
+@app.route('/follownew', methods=['POST'])
+def follow_add():
+    leaderID = request.form['userID']
+    uid = session["uid"]
+    # cmd0 = 'SELECT uid FROM users where username = (:name1)'
+    # leaderID = g.conn.execute(text(cmd0), name1=leader)
+    cmd = 'INSERT INTO follows VALUES (:name1, :name2)';
+    g.conn.execute(text(cmd), name1=leaderID, name2=uid);
+    return redirect('/home')
 
 @app.route('/addfavorite', methods=['POST'])
 def favorite_add():
