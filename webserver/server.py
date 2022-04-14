@@ -330,12 +330,16 @@ def follow():
 
 @app.route('/follownew', methods=['POST'])
 def follow_add():
-    leaderID = request.form['userID']
+    leader = request.form['username']
     uid = session["uid"]
-    # cmd0 = 'SELECT uid FROM users where username = (:name1)'
-    # leaderID = g.conn.execute(text(cmd0), name1=leader)
+    cmd0 = 'SELECT uid FROM users where username = (:name1)'
+    leaderID = g.conn.execute(text(cmd0), name1=leader)
+    for row in leaderID:
+        print("ROW", row)
+        x = row[0]
+    # print(leaderID.get('uid'))
     cmd = 'INSERT INTO follows VALUES (:name1, :name2)';
-    g.conn.execute(text(cmd), name1=leaderID, name2=uid);
+    g.conn.execute(text(cmd), name1=x, name2=uid);
     return redirect('/home')
 
 @app.route('/addfavorite', methods=['POST'])
