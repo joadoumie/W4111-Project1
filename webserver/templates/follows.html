@@ -1,0 +1,35 @@
+<html>
+  <style>
+    body{
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+
+
+<body>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<h1> All the users that you follow</h1>
+
+  <table>
+    {% for currLeader in leaderDict%}
+    <tr><td>User: {{leaderDict[currLeader]}}</td></tr>
+    {% endfor %}
+  </table>
+<form method="POST" action="/follownew">
+    <p> Which user would you like to follow?:
+    <input name="username" type="text" placeholder="username"/><input type="submit" value="Add">
+  </p>
+</form>
+</body>
+
+
+</html>

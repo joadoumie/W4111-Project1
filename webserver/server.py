@@ -17,9 +17,11 @@ import os
 import json
 # TO BE REMOVED
 import time
+from PIL import Image
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, session, flash
+from werkzeug.utils import secure_filename
 
 # JSON RECIPEUID STUFF
 with open('ids.json') as f:
@@ -29,10 +31,12 @@ recipe_uid = ids_data["recipeuid"]
 ingredient_uid = ids_data["ingredientid"]
 review_id = ids_data["reviewid"]
 new_user_id = ids_data["userid"]
+photo_id = ids_data["photoid"]
 print(ids_data["recipeuid"])
 with open('ids.json', 'w') as json_file:
     json.dump(ids_data, json_file)
 
+login_pages = ['create_new_login', 'existing_login', 'login_attempt', 'login', 'do_login', 'create_new_account']
 
 def increment_recipeID():
     global recipe_uid, ids_data
@@ -57,25 +61,31 @@ def increment_userID():
     with open('ids.json', 'w') as json_file:
         json.dump(ids_data, json_file)
 
+
 def increment_reviewID():
-  global review_id, ids_data
-  review_id += 1
-  ids_data["reviewid"] += 1
+    global review_id, ids_data
+    review_id += 1
+    ids_data["reviewid"] += 1
+    with open('ids.json', 'w') as json_file:
+        json.dump(ids_data, json_file)
+
+
+def increment_photoID():
+  global photo_id, ids_data
+  photo_id += 1
+  ids_data["photoid"] += 1
   with open('ids.json', 'w') as json_file:
     json.dump(ids_data, json_file)
 
 
+def valid_session():
+    if session.get("logged_in"):
+      return True
+    return False
+
+
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
-
-
-def insert_into_table(table_name, list_of_vals):
-    values = "("
-    for val in list_of_vals:
-        values += str(val)
-    values += ")"
-    return "INSERT INTO " + table_name + "VALUES " + values
-
 
 # XXX: The Database URI should be in the format of:
 #
@@ -118,6 +128,7 @@ def before_request():
 
   The variable g is globally accessible
   """
+    global login_pages
     try:
         g.conn = engine.connect()
     except:
@@ -125,6 +136,10 @@ def before_request():
         import traceback;
         traceback.print_exc()
         g.conn = None
+    if not valid_session() and request.endpoint not in login_pages:
+        print(request.endpoint)
+        flash("Silly goose! Not so fast! Log in First!")
+        return index()
 
 
 @app.teardown_request
@@ -242,7 +257,8 @@ def review_recipes():
 
 @app.route('/logout')
 def logout():
-    session['logged_in'] = False
+    session.clear()
+    flash("You have successfully logged out!")
     return index()
 
 
@@ -265,6 +281,7 @@ def add_ingr_err():
 def navbar():
     return render_template("testnavbar.html")
 
+
 @app.route('/favoriterecipes')
 def fave_recipes():
     # DEBUG: this is debugging code to see what request looks like
@@ -278,15 +295,15 @@ def fave_recipes():
     from recipes natural join favorites
     where uid = (:name1)
     """
-    cursor1 = g.conn.execute(text(tempfave), name1 = session["uid"])
+    cursor1 = g.conn.execute(text(tempfave), name1=session["uid"])
     recipeIDList = []
     recipeNamesDict = {}
     recipeInstDict = {}
     for result in cursor1:
         recipeIDList.append(result['recipeid'])  # can also be accessed using result[0]
         currRecipeID = result['recipeid']
-        recipeNamesDict[currRecipeID]= str(result['recipename']).strip()
-        recipeInstDict[currRecipeID]= str(result['instructions']).strip()
+        recipeNamesDict[currRecipeID] = str(result['recipename']).strip()
+        recipeInstDict[currRecipeID] = str(result['instructions']).strip()
     cursor1.close()
 
     recipeIngredDict = {}
@@ -312,6 +329,7 @@ def fave_recipes():
 
     return render_template("favoriterecipes.html", **context2)
 
+
 @app.route('/addfavorite', methods=['POST'])
 def favorite_add():
     recipeid = request.form['recipeid']
@@ -319,6 +337,7 @@ def favorite_add():
     cmd = 'INSERT INTO favorites VALUES (:name1, :name2)';
     g.conn.execute(text(cmd), name1=recipeid, name2=uid);
     return redirect('/home')
+
 
 @app.route('/addreview', methods=['POST'])
 def review_add():
@@ -368,11 +387,12 @@ def ingredient_add():
     else:
         ingr_result = g.conn.execute(text(cmd), name1=request.form["ingredient_name"])
         for row in ingr_result:
-          print("ROW", row)
-          local_ingr_id = row[0]
+            print("ROW", row)
+            local_ingr_id = row[0]
 
     cmd = 'INSERT INTO contains_ingredients VALUES (:name1, :name2, :name3, :name4)';
-    g.conn.execute(text(cmd), name1=local_ingr_id, name2=session["recipeid"], name3=ingredient_qty, name4=ingredient_unit);
+    g.conn.execute(text(cmd), name1=local_ingr_id, name2=session["recipeid"], name3=ingredient_qty,
+                   name4=ingredient_unit);
     flash("Ingredient successfully added! Add another ingredient if need be!")
     return redirect('/home')
 
@@ -408,7 +428,7 @@ def do_login():
                                       name2=request.form["password"]).scalar()
     if not correct_password:
         flash('wrong password!')
-        return redirect(request.referrer)
+        return redirect('/existing_login')
     session['logged_in'] = True
     cmd = "SELECT uid FROM users WHERE username = (:name1)"
     uid_row = g.conn.execute(text(cmd), name1=request.form["username"])
@@ -424,13 +444,70 @@ def create_new_account():
     user_exists = g.conn.execute(text(cmd), name1=request.form["username"]).scalar()
     if user_exists:
         flash("A user already exists with that username - please choose a new username")
-        return redirect(request.referrer)
+        return redirect('/createnewaccount')
     cmd = "INSERT INTO users VALUES (:name1, :name2, :name3)"
     g.conn.execute(text(cmd), name1=new_user_id, name2=request.form["username"], name3=request.form["password"])
     increment_userID()
     flash("Please login now")
-    return render_template('existinglogin.html')
+    return redirect('/existing_login')
 
+
+@app.route('/follows')
+def follow():
+
+    tempsql1 = """
+    select * from follows as f join users as u
+    on f.leader = u.uid
+    where f.follower = (:name8)
+    """
+    cursor3 = g.conn.execute(text(tempsql1), name8=session["uid"])
+
+    leaderDict = {}
+    for result1 in cursor3:
+        leaderDict[result1['leader']] = str(result1['username']).strip()
+
+    context4 = dict(leaderDict = leaderDict)
+
+    return render_template("follows.html", **context4)
+
+@app.route('/follownew', methods=['POST'])
+def follow_add():
+    leader = request.form['username']
+    uid = session["uid"]
+    cmd0 = 'SELECT uid FROM users where username = (:name1)'
+    leaderID = g.conn.execute(text(cmd0), name1=leader)
+    leaderID_exists = g.conn.execute(text(cmd0), name1=leader).scalar()
+    if not leaderID_exists:
+        flash("Impromper username - get it right!")
+        return redirect("/follows")
+    for row in leaderID:
+        print("ROW", row)
+        x = row[0]
+    cmd = 'INSERT INTO follows VALUES (:name1, :name2)';
+    g.conn.execute(text(cmd), name1=x, name2=uid);
+    return redirect('/home')
+
+
+@app.route('/upload_photo', methods=["POST"])
+def upload_photo():
+    pic = request.files['pic']
+    if not pic:
+      flash("No valid picture uploaded")
+      return index()
+    #Add sql query here (need new table in DB with photo id and like BLOB or byte.a column thing)
+    cmd = "INSERT INTO photos VALUES (:name1, :name2, :name3, :name4)"
+    g.conn.execute(text(cmd), name1=photo_id, name2=session["recipeid"], name3=session["uid"], name4=pic.read())
+    return index()
+
+
+@app.route('/random')
+def random():
+    cmd = "SELECT img FROM photos WHERE photoID= (:name1)"
+    image_row = g.conn.execute(text(cmd), name1=1)
+    for row in image_row:
+      print("weird stuff")
+      x = row[0]
+    return Image.open(bytes(x))
 
 if __name__ == "__main__":
     import click
