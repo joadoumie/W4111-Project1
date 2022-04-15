@@ -59,8 +59,8 @@
 {% endwith %}
 
 <form method="POST" action="/addrecipe">
-<p>Add recipe name: <input type="text" name="recipename" maxlength="50"> </p>
-    <p>Add Instructions: <input type="text" name="instructions"></p>
+<p>Add recipe name: <input type="text" name="recipename" minlength="5" maxlength="50"> </p>
+    <p>Add Instructions: <input type="text" name="instructions" minlength="5"></p>
     <p><input type="submit" value="Add"></p>
 </form>
 
@@ -68,7 +68,7 @@
     <p>Add ingredients (split by comma):
    <ul id="fieldList">
     <li>
-      <input name="ingredient_name" type="text" placeholder="Name" maxlength="50"/>
+      <input name="ingredient_name" type="text" placeholder="Name" minlength="3" maxlength="50"/>
     </li>
     <li>
       <input name="quantity" type="number" placeholder="Quantity" min ="0" max = "2147483640"/>
