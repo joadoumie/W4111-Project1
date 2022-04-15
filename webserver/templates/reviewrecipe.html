@@ -48,8 +48,15 @@
   </style>
 
   <h1>Write a review here</h1>
-
-  <p><a href="/testnav">Go to the nav page</a></p>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 
 <form method="POST" action="/addreview">
   <p> Input recipeID:

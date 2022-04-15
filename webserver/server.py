@@ -328,6 +328,11 @@ def fave_recipes():
 def favorite_add():
     recipeid = request.form['recipeid']
     uid = session["uid"]
+    cmd = 'SELECT * FROM recipes WHERE recipeID = (:name1)'
+    recipe_exists = g.conn.execute(text(cmd), name1=recipeid).scalar()
+    if not recipe_exists:
+        flash("You must put in a valid recipe!")
+        return redirect('/favoriterecipes')
     cmd = 'INSERT INTO favorites VALUES (:name1, :name2)'
     g.conn.execute(text(cmd), name1=recipeid, name2=uid)
     return redirect('/home')
@@ -339,7 +344,11 @@ def review_add():
     stars = request.form['stars']
     content = request.form['reviewtext']
     uid = session["uid"]
-    # print(recipe_name, instructions, ingredients)
+    cmd = 'SELECT * FROM recipes WHERE recipeID = (:name1)'
+    recipe_exists = g.conn.execute(text(cmd), name1=recipeid).scalar()
+    if not recipe_exists:
+        flash("You must put in a valid recipe!")
+        return redirect('/reviews')
     cmd = 'INSERT INTO review VALUES (:name1, :name2, :name3, :name4, :name5)'
     g.conn.execute(text(cmd), name1=review_id, name2=content,
                    name3=stars, name4=recipeid, name5=uid)
