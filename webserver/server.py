@@ -394,7 +394,11 @@ def ingredient_add():
         for row in ingr_result:
             print("ROW", row)
             local_ingr_id = row[0]
-
+    cmd = 'SELECT * FROM contains_ingredients WHERE ingredientID = (:name1)'
+    recipe_contains_ingredient = g.conn.execute(text(cmd), name1=local_ingr_id).scalar()
+    if recipe_contains_ingredient:
+        flash("Recipe already contains ingredient, please do not add multiple times.")
+        return redirect('/home')
     cmd = 'INSERT INTO contains_ingredients VALUES (:name1, :name2, :name3, :name4)'
     g.conn.execute(text(cmd), name1=local_ingr_id, name2=session["recipeid"], name3=ingredient_qty,
                    name4=ingredient_unit)
@@ -503,6 +507,7 @@ def upload_photo():
     #Add sql query here (need new table in DB with photo id and like BLOB or byte.a column thing)
     cmd = "INSERT INTO photos VALUES (:name1, :name2, :name3, :name4)"
     g.conn.execute(text(cmd), name1=photo_id, name2=session["recipeid"], name3=session["uid"], name4=pic.read())
+    increment_photoID()
     return index()
 
 if __name__ == "__main__":
