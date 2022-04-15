@@ -13,6 +13,10 @@
   <table>
     {% for currRecipeID in recipeIDList%}
     <tr><th style="text-align:left">RecipeID #{{currRecipeID}}: {{recipeNamesDict[currRecipeID]}}</th></tr>
+    {% for currImage in recipeImageDict[currRecipeID]%}
+    <img src="data:image/jpeg;base64,{{ currImage }}" alt="img_data"  id="imgslot"/>
+    <tr><td></td></tr>
+    {% endfor %}
     {% for currIngred in recipeIngredDict[currRecipeID]%}
     <tr><td>{{currIngred}}</td></tr>
     {% endfor %}

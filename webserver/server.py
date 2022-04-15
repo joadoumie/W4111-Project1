@@ -17,7 +17,7 @@ import os
 import json
 # TO BE REMOVED
 import time
-from PIL import Image
+# from PIL import Image
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, session, flash
@@ -176,20 +176,6 @@ def index():
 
 @app.route('/allrecipes')
 def all_recipes():
-    """
-  request is a special object that Flask provides to access web request information:
-  request.method:   "GET" or "POST"
-  request.form:     if the browser submitted a form, this contains the data in the form
-  request.args:     dictionary of URL arguments e.g., {a:1, b:2} for http://localhost?a=1&b=2
-  See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
-  """
-
-    # DEBUG: this is debugging code to see what request looks like
-    print(request.args)
-
-    #
-    # example of a database query
-    #
     cursor1 = g.conn.execute("SELECT * FROM recipes")
     recipeIDList = []
     recipeNamesDict = {}
@@ -200,6 +186,16 @@ def all_recipes():
         recipeNamesDict[currRecipeID] = str(result['recipename']).strip()
         recipeInstDict[currRecipeID] = str(result['instructions']).strip()
     cursor1.close()
+
+    recipeImageDict = {}
+    for curr_recipeID in recipeIDList:
+        cmd = "SELECT encode(img,'base64') FROM photos WHERE recipeID = (:name10)"
+        cursor5 = g.conn.execute(text(cmd), name10=curr_recipeID)
+        imagesforcurr_recipe = []
+        for result in cursor5:
+            x= result[0]
+            imagesforcurr_recipe.append(x)
+        recipeImageDict[curr_recipeID] = imagesforcurr_recipe
 
     recipeIngredDict = {}
     for curr_recipeID in recipeIDList:
@@ -242,7 +238,7 @@ def all_recipes():
 
     context1 = dict(recipeIDList=recipeIDList, recipeNamesDict=recipeNamesDict,
                     recipeInstDict=recipeInstDict, recipeIngredDict=recipeIngredDict,
-                    recipeRatingDict=recipeRatingDict)
+                    recipeRatingDict=recipeRatingDict, recipeImageDict = recipeImageDict)
     #
     # render_template looks in the templates/ folder for files.
     # for example, the below file reads template/index.html
@@ -498,16 +494,6 @@ def upload_photo():
     cmd = "INSERT INTO photos VALUES (:name1, :name2, :name3, :name4)"
     g.conn.execute(text(cmd), name1=photo_id, name2=session["recipeid"], name3=session["uid"], name4=pic.read())
     return index()
-
-
-@app.route('/random')
-def random():
-    cmd = "SELECT img FROM photos WHERE photoID= (:name1)"
-    image_row = g.conn.execute(text(cmd), name1=1)
-    for row in image_row:
-      print("weird stuff")
-      x = row[0]
-    return Image.open(bytes(x))
 
 if __name__ == "__main__":
     import click
