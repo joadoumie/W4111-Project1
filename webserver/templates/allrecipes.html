@@ -6,7 +6,46 @@
     }
   </style>
 
+  <style type="text/css">
+<!--
 
+ #navbar ul {
+	margin: 0;
+	padding: 5px;
+	list-style-type: none;
+	text-align: center;
+	background-color: #000;
+	}
+
+#navbar ul li {
+	display: inline;
+	}
+
+#navbar ul li a {
+	text-decoration: none;
+	padding: .2em 1em;
+	color: #fff;
+	background-color: #000;
+	}
+
+#navbar ul li a:hover {
+	color: #000;
+	background-color: #fff;
+	}
+
+-->
+</style>
+
+<div id="navbar">
+  <ul>
+	<li><a href="{{url_for('recipe_home')}}">Add a Recipe</a></li>
+	<li><a href="{{url_for('review_recipes')}}">Write a Review</a></li>
+	<li><a href="{{url_for('follow')}}">Follow</a></li>
+	<li><a href="{{url_for('fave_recipes')}}">My Favorites</a></li>
+    <li><a href="{{url_for('all_recipes')}}">All Recipes</a></li>
+	<li><a href="{{url_for('logout')}}">Logout</a></li>
+  </ul>
+</div>
 <body>
   <h1>All recipes in database</h1>
 

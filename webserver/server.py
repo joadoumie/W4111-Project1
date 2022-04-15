@@ -15,9 +15,7 @@ Read about it online.
 
 import os
 import json
-# TO BE REMOVED
-import time
-# from PIL import Image
+from datetime import datetime
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, session, flash
@@ -133,7 +131,7 @@ def before_request():
         g.conn = engine.connect()
     except:
         print("uh oh, problem connecting to database")
-        import traceback;
+        import traceback
         traceback.print_exc()
         g.conn = None
     if not valid_session() and request.endpoint not in login_pages:
@@ -330,8 +328,8 @@ def fave_recipes():
 def favorite_add():
     recipeid = request.form['recipeid']
     uid = session["uid"]
-    cmd = 'INSERT INTO favorites VALUES (:name1, :name2)';
-    g.conn.execute(text(cmd), name1=recipeid, name2=uid);
+    cmd = 'INSERT INTO favorites VALUES (:name1, :name2)'
+    g.conn.execute(text(cmd), name1=recipeid, name2=uid)
     return redirect('/home')
 
 
@@ -342,9 +340,9 @@ def review_add():
     content = request.form['reviewtext']
     uid = session["uid"]
     # print(recipe_name, instructions, ingredients)
-    cmd = 'INSERT INTO review VALUES (:name1, :name2, :name3, :name4, :name5)';
+    cmd = 'INSERT INTO review VALUES (:name1, :name2, :name3, :name4, :name5)'
     g.conn.execute(text(cmd), name1=review_id, name2=content,
-                   name3=stars, name4=recipeid, name5=uid);
+                   name3=stars, name4=recipeid, name5=uid)
     increment_reviewID()
     return redirect('/home')
 
@@ -354,9 +352,11 @@ def recipe_add():
     recipe_name = request.form['recipename']
     instructions = request.form['instructions']
     print(recipe_name, instructions)
-    cmd = 'INSERT INTO recipes VALUES (:name1, :name2, :name3)';
-    g.conn.execute(text(cmd), name1=recipe_uid, name2=recipe_name, name3=instructions);
+    cmd = 'INSERT INTO recipes VALUES (:name1, :name2, :name3)'
+    g.conn.execute(text(cmd), name1=recipe_uid, name2=recipe_name, name3=instructions)
     session["recipeid"] = recipe_uid
+    cmd = 'INSERT INTO created VALUES (:name1, :name2, :name3)'
+    g.conn.execute(text(cmd), name1=datetime.now(), name2=session["recipeid"], name3=session["uid"])
     increment_recipeID()
     flash("Successfully added Recipe! Please add your ingredients now!")
     return redirect('/home')
@@ -377,8 +377,8 @@ def ingredient_add():
     if not ingredient_exists:
         # Add ingredient to ingredients table.
         local_ingr_id = ingredient_uid
-        cmd = 'INSERT INTO ingredients VALUES (:name1, :name2)';
-        g.conn.execute(text(cmd), name1=local_ingr_id, name2=ingredient_name);
+        cmd = 'INSERT INTO ingredients VALUES (:name1, :name2)'
+        g.conn.execute(text(cmd), name1=local_ingr_id, name2=ingredient_name)
         increment_ingredientID()
     else:
         ingr_result = g.conn.execute(text(cmd), name1=request.form["ingredient_name"])
@@ -386,9 +386,9 @@ def ingredient_add():
             print("ROW", row)
             local_ingr_id = row[0]
 
-    cmd = 'INSERT INTO contains_ingredients VALUES (:name1, :name2, :name3, :name4)';
+    cmd = 'INSERT INTO contains_ingredients VALUES (:name1, :name2, :name3, :name4)'
     g.conn.execute(text(cmd), name1=local_ingr_id, name2=session["recipeid"], name3=ingredient_qty,
-                   name4=ingredient_unit);
+                   name4=ingredient_unit)
     flash("Ingredient successfully added! Add another ingredient if need be!")
     return redirect('/home')
 
@@ -413,6 +413,7 @@ def do_login():
     print("Testing testing")
     if request.form['password'] == '123123' and request.form['username'] == 'admin':
         session['logged_in'] = True
+        session['uid'] = 0
         return index()
     cmd = "SELECT * FROM users WHERE username = (:name1)"
     user_exists = g.conn.execute(text(cmd), name1=request.form["username"]).scalar()
@@ -479,8 +480,8 @@ def follow_add():
     for row in leaderID:
         print("ROW", row)
         x = row[0]
-    cmd = 'INSERT INTO follows VALUES (:name1, :name2)';
-    g.conn.execute(text(cmd), name1=x, name2=uid);
+    cmd = 'INSERT INTO follows VALUES (:name1, :name2)'
+    g.conn.execute(text(cmd), name1=x, name2=uid)
     return redirect('/home')
 
 
